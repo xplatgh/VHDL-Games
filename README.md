@@ -46,4 +46,4 @@ References:
 
 Note:
 
-Since the FPGA device and the VGA display were supported by my university for the purpose of a course and I have finished it, I cannot improve my codes in the experiment any more. If conditions permit, I will continue to improve them.
+Since the FPGA device and the VGA display were supported by my university for the purpose of a course and I have finished it, I cannot improve my codes in the experiment any more. Due to the limitation of the device, the 8 modes are divided into three parts -- mode_1_to_6, mode_7 and mode_8, and only the code corresponding to its mode in a file is tested and valid. If conditions permit, I will continue to improve them.
