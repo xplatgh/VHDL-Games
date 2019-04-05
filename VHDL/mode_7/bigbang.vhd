@@ -163,7 +163,7 @@ begin
 							mode<=mode+1;
 						end if;		
 					end if;	
-	mode<="110";	
+					mode<="110";	
 					if mode="101" then
 						if rcv_data="01110001" then
 							if f=8 then
@@ -228,7 +228,7 @@ end process P2;
 
     PROCESS( CLK )
     BEGIN
-        IF CLK'EVENT AND CLK = '1' THEN -- 50MHz 5·ÖÆµ
+        IF CLK'EVENT AND CLK = '1' THEN -- 50MHz 5åˆ†é¢‘
             IF FS = 4 THEN FS <= "000";
             ELSE
                 FS <= (FS + 1);
@@ -236,7 +236,7 @@ end process P2;
         END IF;
     END PROCESS;
     FCLK <= FS(2);
-    PROCESS( FCLK )--ÔÙ315·ÖÆµ£¬12000000/(13*30)=30769,½Ó½üÓÚÐÐÆµ31469
+    PROCESS( FCLK )--å†315åˆ†é¢‘ï¼Œ12000000/(13*30)=30769,æŽ¥è¿‘äºŽè¡Œé¢‘31469
     BEGIN
         IF FCLK'EVENT AND FCLK = '1' THEN
             IF CC = 314 THEN  CC <= "000000000";
@@ -260,11 +260,11 @@ end process P2;
     
     PROCESS( CC,LL )
     BEGIN
-        IF CC > 251 THEN  HS1 <= '0';  --ÐÐÍ¬²½
+        IF CC > 251 THEN  HS1 <= '0';  --è¡ŒåŒæ­¥
         ELSE
             HS1 <= '1';
         END IF;
-        IF LL > 479 THEN  VS1 <= '0'; --³¡Í¬²½
+        IF LL > 479 THEN  VS1 <= '0'; --åœºåŒæ­¥
         ELSE
             VS1 <= '1';
         END IF;
