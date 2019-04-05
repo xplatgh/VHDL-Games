@@ -40,8 +40,8 @@ signal xt : integer range 0 to 1800;
 
 signal clk_rscnt:integer range 0 to 651;
 signal sam_clk:std_logic;
-type state_type is(start,data,over);
-signal state:state_type;
+type status_type is(start,data,over);
+signal status:status_type;
 signal sam_cnt:std_logic_vector(2 downto 0);
 signal bit_cnt:std_logic_vector(3 downto 0);
 signal rcv_shift_reg:std_logic_vector(7 downto 0);
@@ -49,9 +49,9 @@ signal rcv_data:std_logiC_vector(7 downto 0);
 signal rrr,l,rot,rev,pul : std_logic;
 signal rrrr,uu,lll,dd : std_logic;
 
-type state_stype is array(0 to 17,0 to 17) of std_logic;    --(250-2*2)*(400-4*2)/8=12054--------------64x64--------------
+type status_stype is array(0 to 17,0 to 17) of std_logic;    --(250-2*2)*(400-4*2)/8=12054--------------64x64--------------
 type index_stype is array(0 to 100) of integer range 0 to 127;       --max : 12054--------------4096-------
-signal state1,state0 : state_stype;
+signal status1,status0 : status_stype;
 signal index_x,index_y : index_stype;
 signal alive : std_logic;
 signal di,dir : std_logic_vector(1 downto 0);
@@ -63,14 +63,14 @@ signal lcx : std_logic;
 signal score1,score0 : std_logic_vector(3 downto 0);
 signal ccc,llc : integer range 0 to 127;
 
-type ttstate_type is array(0 to 11,0 to 42) of std_logic;    --(250-2*2)*(400-4*2)/8=12054
+type ttstatus_type is array(0 to 11,0 to 42) of std_logic;    --(250-2*2)*(400-4*2)/8=12054
 type index_typex is array(0 to 3) of integer range 0 to 15;
 type index_typey is array(0 to 3) of integer range 0 to 63;
-type tstatee_type is (start,usual,dead);
-signal ttstate1,ttstate0 : ttstate_type;
+type tstatuse_type is (start,usual,dead);
+signal ttstatus1,ttstatus0 : ttstatus_type;
 signal tindex_x : index_typex;
 signal tindex_y : index_typey;
-signal tstate : tstatee_type;
+signal tstatus : tstatuse_type;
 signal food0,food1,food_cnt : integer range 0 to 6;
 signal tra,tra_r,tra_l,tra_ro,tra_re,tra_d : std_logic;
 signal ti,tj,tk,tm,tn,tsp : integer range 0 to 63;
@@ -102,7 +102,7 @@ end process P1;
 P2:process(clk,rst)
 begin
 	if rst='0' then
-		state<=start;
+		status<=start;
 		sam_cnt<="000";
 		bit_cnt<="0000";
 		rcv_shift_reg<="00111111";
@@ -129,12 +129,12 @@ begin
 
 	elsif rising_edge(clk) then
 		if sam_clk='1' then
-			case state is
+			case status is
 				when start=>
 					if rxd='0' then
 						if sam_cnt="011" then
 							sam_cnt<="000";
-							state<=data;
+							status<=data;
 							bit_cnt<="0000";
 						else
 							sam_cnt<=sam_cnt+'1';
@@ -143,7 +143,7 @@ begin
 				when data=>
 					if sam_cnt="111" then
 						if bit_cnt="1000" then
-							state<=over;
+							status<=over;
 						else
 							rcv_shift_reg<=rxd&rcv_shift_reg(7 downto 1);
 							sam_cnt<="000";
@@ -162,7 +162,7 @@ begin
 							mode<=mode+1;
 						end if;		
 					end if;	
-					mode<="111";	
+	mode<="111";	
 					if mode="101" then
 						if rcv_data="01110001" then
 							if f=8 then
@@ -216,7 +216,7 @@ begin
 						end if;
 					end if;
 					
-					state<=start;
+					status<=start;
 			end case;
 		end if;
 	end if;
@@ -225,7 +225,7 @@ end process P2;
 
     PROCESS( CLK )
     BEGIN
-        IF CLK'EVENT AND CLK = '1' THEN -- 50MHz 5åˆ†é¢‘
+        IF CLK'EVENT AND CLK = '1' THEN -- 50MHz 5·ÖÆµ
             IF FS = 4 THEN FS <= "000";
             ELSE
                 FS <= (FS + 1);
@@ -233,7 +233,7 @@ end process P2;
         END IF;
     END PROCESS;
     FCLK <= FS(2);
-    PROCESS( FCLK )--å†315åˆ†é¢‘ï¼Œ12000000/(13*30)=30769,æŽ¥è¿‘äºŽè¡Œé¢‘31469
+    PROCESS( FCLK )--ÔÙ315·ÖÆµ£¬12000000/(13*30)=30769,½Ó½üÓÚÐÐÆµ31469
     BEGIN
         IF FCLK'EVENT AND FCLK = '1' THEN
             IF CC = 314 THEN  CC <= "000000000";
@@ -257,11 +257,11 @@ end process P2;
     
     PROCESS( CC,LL )
     BEGIN
-        IF CC > 251 THEN  HS1 <= '0';  --è¡ŒåŒæ­¥
+        IF CC > 251 THEN  HS1 <= '0';  --ÐÐÍ¬²½
         ELSE
             HS1 <= '1';
         END IF;
-        IF LL > 479 THEN  VS1 <= '0'; --åœºåŒæ­¥
+        IF LL > 479 THEN  VS1 <= '0'; --³¡Í¬²½
         ELSE
             VS1 <= '1';
         END IF;
@@ -330,26 +330,26 @@ if mode="111" then
 		end if;
 	end loop;
 	for ti in 0 to 42 loop
-		ttstate1(0,ti)<='1';
-		ttstate0(0,ti)<='1';
-		ttstate1(11,ti)<='1';
-		ttstate0(11,ti)<='1';
+		ttstatus1(0,ti)<='1';
+		ttstatus0(0,ti)<='1';
+		ttstatus1(11,ti)<='1';
+		ttstatus0(11,ti)<='1';
 	end loop;
 	for ti in 1 to 10 loop
-		ttstate1(ti,42)<='1';
-		ttstate0(ti,42)<='1';
+		ttstatus1(ti,42)<='1';
+		ttstatus0(ti,42)<='1';
 	end loop;
 	for ti in 1 to 10 loop
 		for tj in 0 to 41 loop
-			ttstate1(ti,tj)<='0';
-			ttstate0(ti,tj)<='0';
+			ttstatus1(ti,tj)<='0';
+			ttstatus0(ti,tj)<='0';
 		end loop;
 	end loop;
 	for ti in 0 to 3 loop
 		tindex_x(ti)<=0;
 		tindex_y(ti)<=0;
 	end loop;
-	tstate<=start;
+	tstatus<=start;
 end if;	
 	
 score1<="0000";
@@ -362,7 +362,7 @@ if lcx='0' and sclk='1' then
 -------------------------------tetris------------------------
 if mode="111" then
 
-case tstate is
+case tstatus is
 when start=>
 	food0<=food_cnt;
 	if food_cnt=6 then
@@ -444,12 +444,12 @@ when start=>
 	
 	end case;
 	
-	tstate<=usual;
+	tstatus<=usual;
 
 when usual=>
 	for ti in 0 to 3 loop
-		if ttstate1(tindex_x(ti),tindex_y(ti))='1' then
-			tstate<=dead;
+		if ttstatus1(tindex_x(ti),tindex_y(ti))='1' then
+			tstatus<=dead;
 		end if;
 	end loop;
 	if food_cnt=6 then
@@ -460,7 +460,7 @@ when usual=>
 	if pul='0' then
 		tra<='0';
 		for ti in 0 to 3 loop
-			if ttstate1(tindex_x(ti),tindex_y(ti)+1)='1' then
+			if ttstatus1(tindex_x(ti),tindex_y(ti)+1)='1' then
 				tra<='1';
 			end if;
 		end loop;
@@ -470,23 +470,23 @@ when usual=>
 			end loop;
 			for ti in 1 to 10 loop
 				for tj in 0 to 41 loop
-					if ttstate1(ti,tj)='0' then
-						ttstate0(ti,tj)<='0';
+					if ttstatus1(ti,tj)='0' then
+						ttstatus0(ti,tj)<='0';
 					end if;
 				end loop;
 			end loop;
 			for ti in 0 to 3 loop
-				ttstate0(tindex_x(ti),tindex_y(ti))<='1';
+				ttstatus0(tindex_x(ti),tindex_y(ti))<='1';
 			end loop;
 		else
 			for ti in 0 to 3 loop
-				ttstate1(tindex_x(ti),tindex_y(ti)-1)<='1';
-				ttstate0(tindex_x(ti),tindex_y(ti)-1)<='0';
+				ttstatus1(tindex_x(ti),tindex_y(ti)-1)<='1';
+				ttstatus0(tindex_x(ti),tindex_y(ti)-1)<='0';
 			end loop;
 			for ti in 1 to 10 loop
 				for tj in 0 to 41 loop
-					if ttstate1(ti,tj)='0' then
-						ttstate0(ti,tj)<='0';
+					if ttstatus1(ti,tj)='0' then
+						ttstatus0(ti,tj)<='0';
 					end if;
 				end loop;
 			end loop;
@@ -495,7 +495,7 @@ when usual=>
 				for tj in 41 downto 1 loop
 					tra_d<='1';
 					for tk in 1 to 10 loop
-						if ttstate1(tk,tj)='0' then
+						if ttstatus1(tk,tj)='0' then
 							tra_d<='0';
 						end if;
 					end loop;
@@ -503,7 +503,7 @@ when usual=>
 						for tk in 41 downto 1 loop
 							if tk<=tj then
 								for tsp in 1 to 10 loop
-									ttstate1(tsp,tk)<=ttstate1(tsp,tk-1);
+									ttstatus1(tsp,tk)<=ttstatus1(tsp,tk-1);
 								end loop;
 							end if;
 						end loop;
@@ -520,16 +520,16 @@ when usual=>
 				end loop;
 			end loop;
 			food1<=food0;
-			tstate<=start;
+			tstatus<=start;
 		end if;
 	end if;
 	
-	if tstate=usual then
+	if tstatus=usual then
 
 		if rrr='1' and pul='0' then
 			tra_r<='1';
 			for ti in 0 to 3 loop
-				if ttstate1(tindex_x(ti)+2,tindex_y(ti)+1)='1' or ttstate1(tindex_x(ti)+1,tindex_y(ti)+1)='1' then
+				if ttstatus1(tindex_x(ti)+2,tindex_y(ti)+1)='1' or ttstatus1(tindex_x(ti)+1,tindex_y(ti)+1)='1' then
 					tra_r<='0';
 				end if;
 			end loop;
@@ -539,13 +539,13 @@ when usual=>
 				end loop;
 				for ti in 1 to 10 loop
 					for tj in 0 to 41 loop
-						if ttstate1(ti,tj)='0' then
-							ttstate0(ti,tj)<='0';
+						if ttstatus1(ti,tj)='0' then
+							ttstatus0(ti,tj)<='0';
 						end if;
 					end loop;
 				end loop;
 				for ti in 0 to 3 loop
-					ttstate0(tindex_x(ti),tindex_y(ti))<='1';
+					ttstatus0(tindex_x(ti),tindex_y(ti))<='1';
 				end loop;
 			end if;
 		end if;
@@ -553,7 +553,7 @@ when usual=>
 		if l='1' and pul='0' then
 			tra_l<='1';
 			for ti in 0 to 3 loop
-				if ttstate1(tindex_x(ti)-1,tindex_y(ti)+1)='1' or ttstate1(tindex_x(ti)-2,tindex_y(ti)+1)='1' then
+				if ttstatus1(tindex_x(ti)-1,tindex_y(ti)+1)='1' or ttstatus1(tindex_x(ti)-2,tindex_y(ti)+1)='1' then
 					tra_l<='0';
 				end if;
 			end loop;
@@ -563,13 +563,13 @@ when usual=>
 				end loop;
 				for ti in 1 to 10 loop
 					for tj in 0 to 41 loop
-						if ttstate1(ti,tj)='0' then
-							ttstate0(ti,tj)<='0';
+						if ttstatus1(ti,tj)='0' then
+							ttstatus0(ti,tj)<='0';
 						end if;
 					end loop;
 				end loop;
 				for ti in 0 to 3 loop
-					ttstate0(tindex_x(ti),tindex_y(ti))<='1';
+					ttstatus0(tindex_x(ti),tindex_y(ti))<='1';
 				end loop;
 			end if;
 		end if;
@@ -577,13 +577,13 @@ when usual=>
 		if rot='1' and tra='0' and pul='0' then
 			tra_ro<='1';
 			for ti in 0 to 3 loop
-				if ttstate1(tindex_x(2)+tindex_y(ti)-tindex_y(2),tindex_y(2)+tindex_x(2)-tindex_x(ti)+2)='1' then
+				if ttstatus1(tindex_x(2)+tindex_y(ti)-tindex_y(2),tindex_y(2)+tindex_x(2)-tindex_x(ti)+2)='1' then
 					tra_ro<='0';
 				end if;
-				if ttstate1(tindex_x(2)+tindex_x(2)-tindex_x(ti),tindex_y(2)+tindex_y(2)-tindex_y(ti)+2)='1' then
+				if ttstatus1(tindex_x(2)+tindex_x(2)-tindex_x(ti),tindex_y(2)+tindex_y(2)-tindex_y(ti)+2)='1' then
 					tra_ro<='0';
 				end if;
-				if ttstate1(tindex_x(2)+tindex_y(ti)-tindex_y(2),tindex_y(2)+tindex_x(2)-tindex_x(ti)+1)='1' then
+				if ttstatus1(tindex_x(2)+tindex_y(ti)-tindex_y(2),tindex_y(2)+tindex_x(2)-tindex_x(ti)+1)='1' then
 					tra_ro<='0';
 				end if;
 			end loop;
@@ -596,13 +596,13 @@ when usual=>
 				end loop;
 				for ti in 1 to 10 loop
 					for tj in 0 to 41 loop
-						if ttstate1(ti,tj)='0' then
-							ttstate0(ti,tj)<='0';
+						if ttstatus1(ti,tj)='0' then
+							ttstatus0(ti,tj)<='0';
 						end if;
 					end loop;
 				end loop;
 				for ti in 0 to 3 loop
-					ttstate0(tindex_x(ti),tindex_y(ti))<='1';
+					ttstatus0(tindex_x(ti),tindex_y(ti))<='1';
 				end loop;
 			end if;
 		end if;
@@ -610,13 +610,13 @@ when usual=>
 		if rev='1' and tra='0' and pul='0' then
 			tra_re<='1';
 			for ti in 0 to 3 loop
-				if ttstate1(tindex_x(2)+tindex_y(2)-tindex_y(ti),tindex_y(2)+tindex_x(ti)-tindex_x(2)+1)='1' then
+				if ttstatus1(tindex_x(2)+tindex_y(2)-tindex_y(ti),tindex_y(2)+tindex_x(ti)-tindex_x(2)+1)='1' then
 					tra_re<='0';
 				end if;
-				if ttstate1(tindex_x(2)+tindex_y(2)-tindex_y(ti),tindex_y(2)+tindex_x(ti)-tindex_x(2)+2)='1' then
+				if ttstatus1(tindex_x(2)+tindex_y(2)-tindex_y(ti),tindex_y(2)+tindex_x(ti)-tindex_x(2)+2)='1' then
 					tra_re<='0';
 				end if;
-				if ttstate1(tindex_x(2)+tindex_x(2)-tindex_x(ti),tindex_y(2)+tindex_y(2)-tindex_y(ti)+2)='1' then
+				if ttstatus1(tindex_x(2)+tindex_x(2)-tindex_x(ti),tindex_y(2)+tindex_y(2)-tindex_y(ti)+2)='1' then
 					tra_re<='0';
 				end if;
 			end loop;
@@ -631,13 +631,13 @@ when usual=>
 			
 				for ti in 1 to 10 loop
 					for tj in 0 to 41 loop
-						if ttstate1(ti,tj)='0' then
-							ttstate0(ti,tj)<='0';
+						if ttstatus1(ti,tj)='0' then
+							ttstatus0(ti,tj)<='0';
 						end if;
 					end loop;
 				end loop;
 				for ti in 0 to 3 loop
-					ttstate0(tindex_x(ti),tindex_y(ti))<='1';
+					ttstatus0(tindex_x(ti),tindex_y(ti))<='1';
 				end loop;
 			end if;
 		end if;
@@ -668,11 +668,11 @@ if mode="110" and alive='1' then
 	 ccc<=to_integer(unsigned(cc-90))/4;
 	 llc<=to_integer(unsigned(ll-100))/8;
 
-	if state1(ccc,llc)='1' and state0(ccc,llc)='1' then
+	if status1(ccc,llc)='1' and status0(ccc,llc)='1' then
 		grbp<="010";
-	elsif state1(ccc,llc)='0' and state0(ccc,llc)='1' then
+	elsif status1(ccc,llc)='0' and status0(ccc,llc)='1' then
 		grbp<="101";
-	elsif state1(ccc,llc)='1' and state0(ccc,llc)='0' then
+	elsif status1(ccc,llc)='1' and status0(ccc,llc)='0' then
 		grbp<="011";
 	end if;
 	 end if;
@@ -1769,7 +1769,7 @@ end if;
 
 end if;
 
-if ((mode="110" and alive='0') or (mode="111" and tstate=dead)) then
+if ((mode="110" and alive='0') or (mode="111" and tstatus=dead)) then
 
 	if (cc=69 and ll=135) then grbp<="010";
 	end if;
@@ -5524,21 +5524,21 @@ end if;
 -------------------------------mode="111"--------------------tetris---------------------
 if mode="111" then
 
-if tstate/=dead then
+if tstatus/=dead then
 
 	if cc>76 and cc<125 and ll>54 and ll<399 then                
 		tccc<=(to_integer(unsigned(cc))-77)/4;
 		tlll<=(to_integer(unsigned(ll))-55)/8;                       ------------------39
-		if ttstate1(tccc,tlll)='0' and ttstate0(tccc,tlll)='1' then
+		if ttstatus1(tccc,tlll)='0' and ttstatus0(tccc,tlll)='1' then
 			grbp<="010";
 		end if;
-		if ttstate1(tccc,tlll)='1' and ttstate0(tccc,tlll)='0' then
+		if ttstatus1(tccc,tlll)='1' and ttstatus0(tccc,tlll)='0' then
 			grbp<="101";
 		end if;
-		if ttstate1(tccc,tlll)='1' and ttstate0(tccc,tlll)='1' then
+		if ttstatus1(tccc,tlll)='1' and ttstatus0(tccc,tlll)='1' then
 			grbp<="111";
 		end if;
-		if ttstate1(tccc,tlll)='0' and ttstate0(tccc,tlll)='0' then
+		if ttstatus1(tccc,tlll)='0' and ttstatus0(tccc,tlll)='0' then
 			grbp<="000";
 		end if;
 	end if;
