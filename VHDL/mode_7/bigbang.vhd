@@ -40,8 +40,8 @@ signal xt : integer range 0 to 1800;
 
 signal clk_rscnt:integer range 0 to 651;
 signal sam_clk:std_logic;
-type state_type is(start,data,over);
-signal state:state_type;
+type status_type is(start,data,over);
+signal status:status_type;
 signal sam_cnt:std_logic_vector(2 downto 0);
 signal bit_cnt:std_logic_vector(3 downto 0);
 signal rcv_shift_reg:std_logic_vector(7 downto 0);
@@ -49,9 +49,9 @@ signal rcv_data:std_logiC_vector(7 downto 0);
 signal rrr,l,rot,rev,speed,pul : std_logic;
 signal rrrr,uu,lll,dd : std_logic;
 
-type state_stype is array(0 to 11,0 to 11) of std_logic;    --(250-2*2)*(400-4*2)/8=12054--------------64x64--------------
+type status_stype is array(0 to 11,0 to 11) of std_logic;    --(250-2*2)*(400-4*2)/8=12054--------------64x64--------------
 type index_stype is array(0 to 100) of integer range 0 to 127;       --max : 12054--------------4096-------
-signal state1,state0 : state_stype;
+signal status1,status0 : status_stype;
 signal index_x,index_y : index_stype;
 signal alive : std_logic;
 signal di,dir : std_logic_vector(1 downto 0);
@@ -63,14 +63,14 @@ signal lcx : std_logic;
 signal score1,score0 : std_logic_vector(3 downto 0);
 signal ccc,llc : integer range 0 to 127;
 
-type ttstate_type is array(0 to 11,0 to 42) of std_logic;    --(250-2*2)*(400-4*2)/8=12054
+type ttstatus_type is array(0 to 11,0 to 42) of std_logic;    --(250-2*2)*(400-4*2)/8=12054
 type index_typex is array(0 to 3) of integer range 0 to 15;
 type index_typey is array(0 to 3) of integer range 0 to 63;
-type tstatee_type is (start,usual,dead);
-signal ttstate1,ttstate0 : ttstate_type;
+type tstatuse_type is (start,usual,dead);
+signal ttstatus1,ttstatus0 : ttstatus_type;
 signal tindex_x : index_typex;
 signal tindex_y : index_typey;
-signal tstate : tstatee_type;
+signal tstatus : tstatuse_type;
 signal food0,food1,food_cnt : integer range 0 to 6;
 signal tra,tra_r,tra_l,tra_ro,tra_re,tra_d : std_logic;
 signal ti,tj,tk,tm,tn,tsp : integer range 0 to 63;
@@ -102,7 +102,7 @@ end process P1;
 P2:process(clk,rst)
 begin
 	if rst='0' then
-		state<=start;
+		status<=start;
 		sam_cnt<="000";
 		bit_cnt<="0000";
 		rcv_shift_reg<="00111111";
@@ -130,12 +130,12 @@ begin
 
 	elsif rising_edge(clk) then
 		if sam_clk='1' then
-			case state is
+			case status is
 				when start=>
 					if rxd='0' then
 						if sam_cnt="011" then
 							sam_cnt<="000";
-							state<=data;
+							status<=data;
 							bit_cnt<="0000";
 						else
 							sam_cnt<=sam_cnt+'1';
@@ -144,7 +144,7 @@ begin
 				when data=>
 					if sam_cnt="111" then
 						if bit_cnt="1000" then
-							state<=over;
+							status<=over;
 						else
 							rcv_shift_reg<=rxd&rcv_shift_reg(7 downto 1);
 							sam_cnt<="000";
@@ -163,7 +163,7 @@ begin
 							mode<=mode+1;
 						end if;		
 					end if;	
-					mode<="110";	
+	mode<="110";	
 					if mode="101" then
 						if rcv_data="01110001" then
 							if f=8 then
@@ -219,7 +219,7 @@ begin
 						end if;
 					end if;
 					
-					state<=start;
+					status<=start;
 			end case;
 		end if;
 	end if;
@@ -228,7 +228,7 @@ end process P2;
 
     PROCESS( CLK )
     BEGIN
-        IF CLK'EVENT AND CLK = '1' THEN -- 50MHz 5åˆ†é¢‘
+        IF CLK'EVENT AND CLK = '1' THEN -- 50MHz 5·ÖÆµ
             IF FS = 4 THEN FS <= "000";
             ELSE
                 FS <= (FS + 1);
@@ -236,7 +236,7 @@ end process P2;
         END IF;
     END PROCESS;
     FCLK <= FS(2);
-    PROCESS( FCLK )--å†315åˆ†é¢‘ï¼Œ12000000/(13*30)=30769,æŽ¥è¿‘äºŽè¡Œé¢‘31469
+    PROCESS( FCLK )--ÔÙ315·ÖÆµ£¬12000000/(13*30)=30769,½Ó½üÓÚÐÐÆµ31469
     BEGIN
         IF FCLK'EVENT AND FCLK = '1' THEN
             IF CC = 314 THEN  CC <= "000000000";
@@ -260,11 +260,11 @@ end process P2;
     
     PROCESS( CC,LL )
     BEGIN
-        IF CC > 251 THEN  HS1 <= '0';  --è¡ŒåŒæ­¥
+        IF CC > 251 THEN  HS1 <= '0';  --ÐÐÍ¬²½
         ELSE
             HS1 <= '1';
         END IF;
-        IF LL > 479 THEN  VS1 <= '0'; --åœºåŒæ­¥
+        IF LL > 479 THEN  VS1 <= '0'; --³¡Í¬²½
         ELSE
             VS1 <= '1';
         END IF;
@@ -329,20 +329,20 @@ if mode="110" then
 	for i in 0 to 11 loop 
 		for j in 0 to 11 loop
 			if (i=0 or i=11 or j=0 or j=11) then
-				state1(i,j)<='1';
-				state0(i,j)<='1';
+				status1(i,j)<='1';
+				status0(i,j)<='1';
 			else
-				state1(i,j)<='0';           --"00":free;  "01":snake&wall;   "10":food
-				state0(i,j)<='0';
+				status1(i,j)<='0';           --"00":free;  "01":snake&wall;   "10":food
+				status0(i,j)<='0';
 			end if;
 		end loop;
 	end loop;
-	state1(6,6)<='0';
-	state0(6,6)<='1';
-	state1(5,6)<='0';
-	state0(5,6)<='1';
-	state1(4,6)<='0';
-	state0(4,6)<='1';
+	status1(6,6)<='0';
+	status0(6,6)<='1';
+	status1(5,6)<='0';
+	status0(5,6)<='1';
+	status1(4,6)<='0';
+	status0(4,6)<='1';
 	index_x(0)<=6;
 	index_y(0)<=6;
 	index_x(1)<=5;
@@ -358,9 +358,9 @@ if mode="110" then
 	food<='0';
 	food_x<=fx_cnt;
 	food_y<=fy_cnt;
-	if (state1(food_x,food_y)='0' and state0(food_x,food_y)='0') then
-		state1(food_x,food_y)<='1';
-		state0(food_x,food_y)<='0';
+	if (status1(food_x,food_y)='0' and status0(food_x,food_y)='0') then
+		status1(food_x,food_y)<='1';
+		status0(food_x,food_y)<='0';
 		food<='1';
 	end if; 
 end if;
@@ -422,14 +422,14 @@ end if;
 	if (di(0) xor dir(0))='1' then
 		di<=dir;
 	end if;	
-	state1(index_x(0),index_y(0))<='0';
-	state0(index_x(0),index_y(0))<='1';
-	state1(index_x(len+1),index_y(len+1))<='0';
-	state0(index_x(len+1),index_y(len+1))<='0';
+	status1(index_x(0),index_y(0))<='0';
+	status0(index_x(0),index_y(0))<='1';
+	status1(index_x(len+1),index_y(len+1))<='0';
+	status0(index_x(len+1),index_y(len+1))<='0';
 	if (di="00" and alive='1') then        --right
-		if  state0(index_x(0)+1,index_y(0))='1' then
+		if  status0(index_x(0)+1,index_y(0))='1' then
 			alive<='0';
-		elsif state1(index_x(0)+1,index_y(0))='1' and state0(index_x(0)+1,index_y(0))='0' then
+		elsif status1(index_x(0)+1,index_y(0))='1' and status0(index_x(0)+1,index_y(0))='0' then
 			food<='0';
 			if (len<99) then
 				len<=len+1;
@@ -452,9 +452,9 @@ end if;
 		end loop;
 		index_x(0)<=index_x(0)+1;
 	elsif (di="01" and alive='1') then    --up
-		if  state0(index_x(0),index_y(0)-1)='1' then
+		if  status0(index_x(0),index_y(0)-1)='1' then
 			alive<='0';
-		elsif state1(index_x(0),index_y(0)-1)='1' and state0(index_x(0),index_y(0)-1)='0' then
+		elsif status1(index_x(0),index_y(0)-1)='1' and status0(index_x(0),index_y(0)-1)='0' then
 			food<='0';
 			if (len<99) then
 				len<=len+1;
@@ -478,9 +478,9 @@ end if;
 		index_y(0)<=index_y(0)-1;
 		end if;
 	elsif (di="10" and alive='1') then    --left
-		if state0(index_x(0)-1,index_y(0))='1' then
+		if status0(index_x(0)-1,index_y(0))='1' then
 			alive<='0';
-		elsif state1(index_x(0)-1,index_y(0))='1' and state0(index_x(0)-1,index_y(0))='0' then
+		elsif status1(index_x(0)-1,index_y(0))='1' and status0(index_x(0)-1,index_y(0))='0' then
 			food<='0';
 			if (len<99) then
 				len<=len+1;
@@ -504,9 +504,9 @@ end if;
 		index_x(0)<=index_x(0)-1;
 		end if;
 	elsif (di="11" and alive='1') then    --down
-		if  state0(index_x(0),index_y(0)+1)='1' then
+		if  status0(index_x(0),index_y(0)+1)='1' then
 			alive<='0';
-		elsif state1(index_x(0),index_y(0)+1)='1' and state0(index_x(0),index_y(0)+1)='0' then
+		elsif status1(index_x(0),index_y(0)+1)='1' and status0(index_x(0),index_y(0)+1)='0' then
 			food<='0';
 			if (len<99) then
 				len<=len+1;
@@ -534,13 +534,13 @@ end if;
 if alive='1' and food='0' then
 	food_x<=fx_cnt;
 	food_y<=fy_cnt;
-	if (state1(food_x,food_y)='0' and state0(food_x,food_y)='0') then
-		state1(food_x,food_y)<='1';
-		state0(food_x,food_y)<='0';
+	if (status1(food_x,food_y)='0' and status0(food_x,food_y)='0') then
+		status1(food_x,food_y)<='1';
+		status0(food_x,food_y)<='0';
 		food<='1';
 	end if;
 end if;
-state1(0,0)<='1';state0(0,0)<='1';
+status1(0,0)<='1';status0(0,0)<='1';
 end if;	
 -------------------------------tetris------------------------
 
@@ -563,11 +563,11 @@ if mode="110" and alive='1' then
 	 ccc<=to_integer(unsigned(cc-90))/4;
 	 llc<=to_integer(unsigned(ll-100))/8;
 
-	if state1(ccc,llc)='1' and state0(ccc,llc)='1' then
+	if status1(ccc,llc)='1' and status0(ccc,llc)='1' then
 		grbp<="010";
-	elsif state1(ccc,llc)='0' and state0(ccc,llc)='1' then
+	elsif status1(ccc,llc)='0' and status0(ccc,llc)='1' then
 		grbp<="101";
-	elsif state1(ccc,llc)='1' and state0(ccc,llc)='0' then
+	elsif status1(ccc,llc)='1' and status0(ccc,llc)='0' then
 		grbp<="011";
 	end if;
 	 end if;
